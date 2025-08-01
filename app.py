@@ -166,8 +166,10 @@ def admin_panel():
     return render_template('admin.html', roster=roster)
 
 
-# ─── BOOTSTRAP ─────────────────────────────────────────────────────
+# ─── BOOTSTRAP ─────────────────────────────────────────────
 if __name__ == '__main__':
+    # This block only runs locally, not on Render
     with app.app_context():
-        db.create_all()
-    app.run(host='0.0.0.0', debug=True)
+        db.create_all()  # Ensures tables exist for local testing
+    app.run(host='0.0.0.0', port=5000, debug=True)
+
