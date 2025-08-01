@@ -1,0 +1,11 @@
+{% extends '_base.html' %}
+{% block title %}Welcome{% endblock %}
+{% block content %}
+  <div class="ask-container">
+    <h2>Do you want to join the challenge?</h2>
+    <form action="{{ url_for('ask') }}" method="post" class="ask-form">
+      <button name="answer" value="yes" type="submit">YES</button>
+      <button name="answer" value="no" type="submit">NO</button>
+    </form>
+  </div>
+{% endblock %}

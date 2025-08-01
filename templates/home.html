@@ -1,0 +1,21 @@
+{% extends "_base.html" %}
+{% block title %}Welcome{% endblock %}
+{% block content %}
+  <div class="centered">
+    <img src="{{ url_for('static', filename='usaf_logo.png') }}"
+         alt="USAF Logo" class="logo">
+    <h1>
+      Air Force Element Running Challenge<br>
+      <small>(13 Aug – 11 Sep)</small>
+    </h1>
+
+    <form method="post" action="{{ url_for('ask') }}">
+      <button type="submit" name="answer" value="yes" class="btn btn-yes">
+        YES
+      </button>
+      <button type="submit" name="answer" value="no" class="btn btn-no">
+        NO
+      </button>
+    </form>
+  </div>
+{% endblock %}

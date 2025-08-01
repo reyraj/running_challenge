@@ -1,0 +1,89 @@
+{% extends "_base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+  <div class="dashboard-container">
+    <div class="greeting">
+      <h2>Hello {{ name }}</h2>
+      <p>Your total miles: {{ '%.1f'|format(total) }}</p>
+    </div>
+
+    <div class="main-content">
+      <!-- ROSTER TABLE -->
+      <div class="roster-table">
+        <h3>All Runners</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Total Miles</th>
+              <th>Log Miles</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for runner, miles in roster %}
+            <tr>
+              <td>{{ runner.name }}</td>
+              <td>{{ '%.1f'|format(miles) }}</td>
+              <td>
+                {% if runner.id == session.participant_id %}
+                <form method="post" action="{{ url_for('dashboard') }}">
+                  <input type="hidden" name="participant_id" value="{{ runner.id }}">
+                  <input
+                    type="number"
+                    name="miles"
+                    step="0.1"
+                    placeholder="0.0"
+                    required
+                    style="width:80px">
+                  <button type="submit" class="btn-primary">Save</button>
+                </form>
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <p style="margin-top:1em;">
+          <a href="{{ url_for('admin_login') }}">Admin Portal</a>
+        </p>
+      </div>
+
+      <!-- TOP‐5 CHART -->
+      <div class="top5-chart">
+        <h3>Top 5</h3>
+        <canvas id="top5Chart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const ctx = document.getElementById('top5Chart').getContext('2d');
+    const labels = {{ top5 | map(attribute=0) | list | tojson }};
+    const data   = {{ top5 | map(attribute=1) | list | tojson }};
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Miles',
+          data,
+          backgroundColor: 'rgba(54, 162, 235, 0.5)',
+          borderColor:   'rgba(54, 162, 235, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  </script>
+{% endblock %}

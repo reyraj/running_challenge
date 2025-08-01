@@ -1,0 +1,65 @@
+{% extends '_base.html' %}
+{% block title %}Your Dashboard{% endblock %}
+{% block content %}
+  <h1>Hello {{ runner.first_name }} {{ runner.last_initial }}.</h1>
+  <p>Your total miles: <strong>{{ runner.total_miles }}</strong></p>
+
+  <div class="flex-container">
+    <!-- LEFT: editable table -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Name</th><th>Total</th><th>Δ Miles</th><th>Save</th></tr>
+        </thead>
+        <tbody>
+        {% for r in participants %}
+          <tr>
+            <form method="post" action="{{ url_for('edit') }}">
+              <td>{{ r.first_name }} {{ r.last_initial }}.</td>
+              <td>{{ '%.1f'|format(r.total_miles) }}</td>
+              <td>
+                {% if r.id==runner.id %}
+                  <input type="number" name="change" step="0.01" value="0.00" required>
+                {% else %}
+                  <input type="number" disabled>
+                {% endif %}
+              </td>
+              <td>
+                {% if r.id==runner.id %}
+                  <button class="btn-primary" type="submit">Save</button>
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+            </form>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- RIGHT: Top 5 chart -->
+    <div class="chart-wrap">
+      <h2>Top 5</h2>
+      <canvas id="top5Chart"></canvas>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const labels = {{ top5|map(attribute='first_name')|list|tojson }};
+    const data   = {{ top5|map(attribute='total_miles')|list|tojson }};
+    new Chart(document.getElementById('top5Chart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets:[{
+          label:'Miles',
+          data,
+          backgroundColor:'rgba(0,115,230,0.6)'
+        }]
+      },
+      options:{ scales:{ y:{ beginAtZero:true } } }
+    });
+  </script>
+{% endblock %}
