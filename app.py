@@ -6,7 +6,7 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = "replace_this_with_a_real_secret"
 
-# Use Render cloud PostgreSQL (environment variable first, then fallback)
+# Use Render cloud PostgreSQL (environment variable first, fallback second)
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     os.environ.get('DATABASE_URL') or
     'postgresql://running_challenge_db_user:jDwTumrQBFw0fArwGei08KPkEFTXuTQP@dpg-d26gocmuk2gs739ql3ug-a.virginia-postgres.render.com/running_challenge_db'
@@ -15,7 +15,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# ─── MODELS ──────────────────────────────────────────────────────────────────────
+# ─── MODELS ───────────────────────────────────────────────
 class Participant(db.Model):
     __tablename__ = 'participant'
     id         = db.Column(db.Integer, primary_key=True)
@@ -29,7 +29,7 @@ class MilesLog(db.Model):
     miles          = db.Column(db.Float, nullable=False)
     logged_at      = db.Column(db.DateTime, default=datetime.utcnow)
 
-# ─── ROUTES ──────────────────────────────────────────────────────────────────────
+# ─── ROUTES ───────────────────────────────────────────────
 @app.route('/')
 def home():
     return render_template('ask.html')
@@ -103,19 +103,16 @@ def dashboard():
     top5 = (db.session
               .query(Participant.name, db.func.sum(MilesLog.miles).label('total'))
               .outerjoin(MilesLog)
-              .group_by(Participant.id)
+              .group_by(Participant.id, Participant.name)
               .order_by(db.desc('total'))
               .limit(5)
               .all())
 
     # Full roster A→Z (convert None totals to 0.0)
-    roster = [(runner, total or 0.0) for runner, total in
-              (db.session
-                .query(Participant, db.func.sum(MilesLog.miles).label('total'))
-                .outerjoin(MilesLog)
-                .group_by(Participant.id)
-                .order_by(Participant.name)
-                .all())]
+    roster = db.session.query(
+        Participant,
+        db.func.coalesce(db.func.sum(MilesLog.miles), 0).label('total')
+    ).outerjoin(MilesLog).group_by(Participant.id, Participant.name).order_by(Participant.name).all()
 
     return render_template('dashboard.html',
                            name=Participant.query.get(pid).name,
@@ -142,34 +139,35 @@ def admin_panel():
         return redirect(url_for('admin_login'))
 
     if request.method == 'POST':
+        # Remove miles
         if 'remove_miles' in request.form:
             pid = int(request.form['participant_id'])
             m   = float(request.form['remove_miles'])
             db.session.add(MilesLog(participant_id=pid, miles=-abs(m)))
             db.session.commit()
             flash("Removed miles.", "info")
+
+        # Drop participant
         if 'drop_id' in request.form:
             pid = int(request.form['drop_id'])
             MilesLog.query.filter_by(participant_id=pid).delete()
             Participant.query.filter_by(id=pid).delete()
             db.session.commit()
             flash("Runner dropped.", "info")
+
         return redirect(url_for('admin_panel'))
 
-    roster = [(runner, total or 0.0) for runner, total in
-              (db.session
-                .query(Participant, db.func.sum(MilesLog.miles).label('total'))
-                .outerjoin(MilesLog)
-                .group_by(Participant.id)
-                .order_by(Participant.name)
-                .all())]
-    return render_template('admin.html', roster=roster)
+    # SAFER ROSTER QUERY FOR POSTGRES
+    roster = db.session.query(
+        Participant,
+        db.func.coalesce(db.func.sum(MilesLog.miles), 0).label('total')
+    ).outerjoin(MilesLog).group_by(Participant.id, Participant.name).order_by(Participant.name).all()
 
+    return render_template('admin.html', roster=roster)
 
 # ─── BOOTSTRAP ─────────────────────────────────────────────
 if __name__ == '__main__':
-    # This block only runs locally, not on Render
+    # Local dev only. Gunicorn handles prod.
     with app.app_context():
-        db.create_all()  # Ensures tables exist for local testing
+        db.create_all()
     app.run(host='0.0.0.0', port=5000, debug=True)
-
