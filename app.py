@@ -6,7 +6,7 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = "replace_this_with_a_real_secret"
 
-# Use Render cloud PostgreSQL
+# Use Render cloud PostgreSQL (environment variable first, then fallback)
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     os.environ.get('DATABASE_URL') or
     'postgresql://running_challenge_db_user:jDwTumrQBFw0fArwGei08KPkEFTXuTQP@dpg-d26gocmuk2gs739ql3ug-a.virginia-postgres.render.com/running_challenge_db'
@@ -165,7 +165,13 @@ def admin_panel():
                 .all())]
     return render_template('admin.html', roster=roster)
 
-# ─── BOOTSTRAP ─────────────────────────────────────────────────────────────────
+# ─── TEMPORARY ROUTE TO INITIALIZE DB ──────────────────────────────
+@app.route('/initdb')
+def initdb():
+    db.create_all()
+    return "Database initialized! You can now remove this route."
+
+# ─── BOOTSTRAP ─────────────────────────────────────────────────────
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
