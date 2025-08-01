@@ -165,11 +165,6 @@ def admin_panel():
                 .all())]
     return render_template('admin.html', roster=roster)
 
-# ─── TEMPORARY ROUTE TO INITIALIZE DB ──────────────────────────────
-@app.route('/initdb')
-def initdb():
-    db.create_all()
-    return "Database initialized! You can now remove this route."
 
 # ─── BOOTSTRAP ─────────────────────────────────────────────────────
 if __name__ == '__main__':
