@@ -5,7 +5,7 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = "replace_this_with_a_real_secret"
 
-# Render PostgreSQL DB
+# PostgreSQL database hosted on Render
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://running_challenge_db_user:jDwTumrQBFw0fArwGei08KPkEFTXuTQP@dpg-d26gocmuk2gs739ql3ug-a.virginia-postgres.render.com/running_challenge_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -44,6 +44,7 @@ def join():
         li = request.form['last_initial'].strip().upper()
         name = f"{fn} {li}."
 
+        # Check if user already exists
         if Participant.query.filter_by(name=name).first():
             flash("User already exists; please log in.", "warning")
             return redirect(url_for('login'))
@@ -51,7 +52,7 @@ def join():
         p = Participant(name=name)
         db.session.add(p)
         db.session.commit()
-        session['participant_id'] = p.id
+        session['participant_id'] = int(p.id)
         return redirect(url_for('dashboard'))
 
     return render_template('join.html')
@@ -62,15 +63,18 @@ def login():
         fn = request.form['first_name'].strip().upper()
         li = request.form['last_initial'].strip().upper()
         name = f"{fn} {li}."
+
         p = Participant.query.filter_by(name=name).first()
         if not p:
-            flash("Not found—please enroll first.", "danger")
+            flash("Account not found. Please enroll first.", "danger")
             return redirect(url_for('join'))
-        session['participant_id'] = p.id
+
+        session['participant_id'] = int(p.id)
         return redirect(url_for('dashboard'))
+
     return render_template('login.html')
 
-@app.route('/dashboard', methods=['GET','POST'])
+@app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     pid = session.get('participant_id')
 
@@ -78,9 +82,9 @@ def dashboard():
         flash("You must log in or enroll first.", "danger")
         return redirect(url_for('home'))
 
-    participant = Participant.query.get(pid)
+    participant = Participant.query.get(int(pid))
     if not participant:
-        flash("Account not found. Please join or log in again.", "danger")
+        flash("Account not found. Please log in again.", "danger")
         session.pop('participant_id', None)
         return redirect(url_for('home'))
 
@@ -91,16 +95,18 @@ def dashboard():
             flash("Please enter a valid number.", "danger")
             return redirect(url_for('dashboard'))
 
-        db.session.add(MilesLog(participant_id=pid, miles=miles))
+        db.session.add(MilesLog(participant_id=int(pid), miles=miles))
         db.session.commit()
-        flash("Congratulations on logging miles today!", "success")
+        flash("Miles logged successfully!", "success")
         return redirect(url_for('dashboard'))
 
+    # Totals
     total = (db.session
                .query(db.func.sum(MilesLog.miles))
-               .filter_by(participant_id=pid)
+               .filter_by(participant_id=int(pid))
                .scalar() or 0.0)
 
+    # Top 5
     top5 = (db.session
               .query(Participant.name, db.func.sum(MilesLog.miles).label('total'))
               .outerjoin(MilesLog)
@@ -109,7 +115,8 @@ def dashboard():
               .limit(5)
               .all())
 
-    roster = [(runner, total or 0.0) for runner, total in
+    # Full roster
+    roster = [(runner, miles or 0.0) for runner, miles in
               (db.session
                 .query(Participant, db.func.sum(MilesLog.miles).label('total'))
                 .outerjoin(MilesLog)
@@ -127,7 +134,7 @@ def dashboard():
 def decline():
     return render_template('decline.html')
 
-@app.route('/admin_login', methods=['GET','POST'])
+@app.route('/admin_login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
         if request.form.get('password') == '1541':
@@ -136,7 +143,7 @@ def admin_login():
         flash("Bad code.", "danger")
     return render_template('admin_login.html')
 
-@app.route('/admin', methods=['GET','POST'])
+@app.route('/admin', methods=['GET', 'POST'])
 def admin_panel():
     if not session.get('admin'):
         return redirect(url_for('admin_login'))
@@ -156,7 +163,7 @@ def admin_panel():
             flash("Runner dropped.", "info")
         return redirect(url_for('admin_panel'))
 
-    roster = [(runner, total or 0.0) for runner, total in
+    roster = [(runner, miles or 0.0) for runner, miles in
               (db.session
                 .query(Participant, db.func.sum(MilesLog.miles).label('total'))
                 .outerjoin(MilesLog)
@@ -165,6 +172,7 @@ def admin_panel():
                 .all())]
     return render_template('admin.html', roster=roster)
 
+# ─── APP RUN ──────────────────────────────────────────────
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
