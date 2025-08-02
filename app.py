@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from sqlalchemy import func
 
 app = Flask(__name__)
 app.secret_key = "replace_this_with_a_real_secret"
@@ -28,7 +29,7 @@ class MilesLog(db.Model):
 # ─── ROUTES ───────────────────────────────────────────────
 @app.route('/')
 def home():
-    return render_template('ask.html')
+    return render_template('home.html')
 
 @app.route('/ask', methods=['POST'])
 def ask():
@@ -44,7 +45,6 @@ def join():
         li = request.form['last_initial'].strip().upper()
         name = f"{fn} {li}."
 
-        # Check if user already exists
         existing = Participant.query.filter_by(name=name).first()
         if existing:
             flash("User already exists; please log in.", "warning")
@@ -58,7 +58,7 @@ def join():
         except Exception as e:
             db.session.rollback()
             print("Error adding participant:", e)
-            flash("An error occurred during enrollment. Try again.", "danger")
+            flash("Enrollment failed. Try again.", "danger")
             return redirect(url_for('join'))
 
         return redirect(url_for('dashboard'))
@@ -86,19 +86,16 @@ def login():
 def dashboard():
     pid = session.get('participant_id')
 
-    # Session check
     if not pid:
         flash("You must log in or enroll first.", "danger")
         return redirect(url_for('home'))
 
     participant = Participant.query.get(int(pid))
     if not participant:
-        print(f"[ERROR] Session pid {pid} not found in DB. Clearing session.")
-        flash("Your account could not be found. Please log in again.", "danger")
+        flash("Account not found. Please log in again.", "danger")
         session.pop('participant_id', None)
         return redirect(url_for('home'))
 
-    # Handle POST to log miles
     if request.method == 'POST':
         try:
             miles = float(request.form['miles'])
@@ -111,26 +108,23 @@ def dashboard():
             flash("Error logging miles. Try again.", "danger")
         return redirect(url_for('dashboard'))
 
-    # Totals for user
     total = (db.session
-               .query(db.func.sum(MilesLog.miles))
+               .query(func.sum(MilesLog.miles))
                .filter_by(participant_id=int(pid))
                .scalar() or 0.0)
 
-    # Top 5 leaderboard
     top5 = [(n, t or 0.0) for n, t in
             (db.session
-                .query(Participant.name, db.func.sum(MilesLog.miles).label('total'))
+                .query(Participant.name, func.sum(MilesLog.miles).label('total'))
                 .outerjoin(MilesLog)
                 .group_by(Participant.id)
-                .order_by(db.desc('total'))
+                .order_by(func.sum(MilesLog.miles).desc())
                 .limit(5)
                 .all())]
 
-    # Full roster
     roster = [(runner, miles or 0.0) for runner, miles in
               (db.session
-                .query(Participant, db.func.sum(MilesLog.miles).label('total'))
+                .query(Participant, func.sum(MilesLog.miles).label('total'))
                 .outerjoin(MilesLog)
                 .group_by(Participant.id)
                 .order_by(Participant.name)
@@ -184,7 +178,7 @@ def admin_panel():
 
     roster = [(runner, miles or 0.0) for runner, miles in
               (db.session
-                .query(Participant, db.func.sum(MilesLog.miles).label('total'))
+                .query(Participant, func.sum(MilesLog.miles).label('total'))
                 .outerjoin(MilesLog)
                 .group_by(Participant.id)
                 .order_by(Participant.name)

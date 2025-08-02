@@ -4,19 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Air Force Running Challenge{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body style="margin:0; font-family: Arial, sans-serif;">
 
-    <!-- Blue Banner Header -->
     <div style="background-color:#0B1E44; color:white; padding:20px; text-align:center;">
-        <img src="{{ url_for('static', filename='usaf_logo.png') }}" 
-             alt="USAF Logo" 
-             style="height:60px; display:block; margin:0 auto;">
-        <h1 style="margin:10px 0 5px 0;">Air Force Element Running Challenge</h1>
+        <h1>Air Force Element Running Challenge</h1>
         <h3 style="margin:0; font-weight:normal;">(13 Aug – 11 Sep)</h3>
-        
-        <!-- Global Navigation Links -->
         <div style="margin-top:15px;">
             <a href="{{ url_for('home') }}" style="color:white; margin:0 15px; text-decoration:none;">Home</a>
             <a href="{{ url_for('login') }}" style="color:white; margin:0 15px; text-decoration:none;">Login</a>
@@ -24,8 +17,7 @@
         </div>
     </div>
 
-    <!-- Page Content -->
-    <div class="content" style="padding: 30px; background-color: #FAEDE0; min-height: calc(100vh - 180px);">
+    <div class="content" style="padding: 30px; background-color: #FAEDE0;">
         {% block content %}{% endblock %}
     </div>
 

@@ -1,21 +1,16 @@
 {% extends "_base.html" %}
-{% block title %}Welcome{% endblock %}
-{% block content %}
-  <div class="centered">
-    <img src="{{ url_for('static', filename='usaf_logo.png') }}"
-         alt="USAF Logo" class="logo">
-    <h1>
-      Air Force Element Running Challenge<br>
-      <small>(13 Aug – 11 Sep)</small>
-    </h1>
+{% block title %}Join Challenge{% endblock %}
 
-    <form method="post" action="{{ url_for('ask') }}">
-      <button type="submit" name="answer" value="yes" class="btn btn-yes">
-        YES
-      </button>
-      <button type="submit" name="answer" value="no" class="btn btn-no">
-        NO
-      </button>
+{% block content %}
+<div style="text-align:center;">
+    <h2>Do you want to join the challenge?</h2>
+    <form method="POST" action="{{ url_for('ask') }}">
+        <button type="submit" name="answer" value="yes">YES</button>
+        <button type="submit" name="answer" value="no">NO</button>
     </form>
-  </div>
+
+    <form method="GET" action="{{ url_for('login') }}" style="margin-top:15px;">
+        <button type="submit">Login</button>
+    </form>
+</div>
 {% endblock %}

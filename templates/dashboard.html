@@ -2,8 +2,8 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="dashboard-container" style="text-align:center;">
-    <h2>Hello {{ name }}.</h2>
+<div style="text-align:center;">
+    <h2>Hello {{ name }}</h2>
     <p>Your total miles: {{ '%.1f'|format(total) }}</p>
 
     <h3>All Runners</h3>
@@ -21,14 +21,12 @@
                 <td>{{ runner.name }}</td>
                 <td>{{ '%.1f'|format(miles) }}</td>
                 <td>
-                    {% if runner.id == session.participant_id %}
+                    {% if session.get('participant_id', 0) == runner.id %}
                     <form method="post" action="{{ url_for('dashboard') }}">
                         <input type="number" name="miles" step="0.1" placeholder="0.0" required>
                         <button type="submit">Save</button>
                     </form>
-                    {% else %}
-                    —
-                    {% endif %}
+                    {% else %}—{% endif %}
                 </td>
             </tr>
             {% endfor %}
@@ -39,34 +37,5 @@
         <a href="{{ url_for('admin_login') }}">Admin Portal</a> | 
         <a href="{{ url_for('home') }}">Home</a>
     </p>
-
-    <div style="margin-top:20px;">
-        <h3>Top 5</h3>
-        <canvas id="top5Chart" width="400" height="200"></canvas>
-    </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    const ctx = document.getElementById('top5Chart').getContext('2d');
-    const labels = {{ top5 | map(attribute=0) | map(attribute='name') | list | tojson }};
-    const data   = {{ top5 | map(attribute=1) | list | tojson }};
-
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels,
-            datasets: [{
-                label: 'Miles',
-                data,
-                backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                borderColor:   'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: { y: { beginAtZero: true } }
-        }
-    });
-</script>
 {% endblock %}
