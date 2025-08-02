@@ -1,7 +1,10 @@
-{% extends '_base.html' %}
-{% block title %}Goodbye{% endblock %}
+{% extends "_base.html" %}
+{% block title %}Not Joining{% endblock %}
+
 {% block content %}
-  <h1>Sorry to see you go! 😞</h1>
-  <p>You need to enroll to participate in the challenge.</p>
-  <p><a href="{{ url_for('join') }}">Enroll now →</a></p>
+<div style="text-align:center;">
+    <h2>Thanks for considering!</h2>
+    <p>You have chosen not to join the challenge.</p>
+    <p><a href="{{ url_for('home') }}">Go Back Home</a></p>
+</div>
 {% endblock %}

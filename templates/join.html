@@ -1,10 +1,13 @@
 {% extends "_base.html" %}
 {% block title %}Enroll{% endblock %}
+
 {% block content %}
-  <h2>Join the Running Challenge</h2>
-  <form method="post">
-    <input type="text" name="first_name" placeholder="First Name" required><br>
-    <input type="text" name="last_initial" placeholder="Last Initial" maxlength="1" required><br>
-    <button type="submit">Join Now</button>
-  </form>
+<div style="text-align:center;">
+    <h2>Join the Challenge</h2>
+    <form method="POST" action="{{ url_for('join') }}">
+        <input type="text" name="first_name" placeholder="First Name" required>
+        <input type="text" name="last_initial" placeholder="Last Initial" maxlength="1" required>
+        <button type="submit">Enroll</button>
+    </form>
+</div>
 {% endblock %}

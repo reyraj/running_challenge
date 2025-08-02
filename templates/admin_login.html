@@ -1,17 +1,12 @@
-{% extends '_base.html' %}
-{% block title %}Admin Sign-In{% endblock %}
+{% extends "_base.html" %}
+{% block title %}Admin Login{% endblock %}
+
 {% block content %}
-  <div class="form-container">
-    <h2>Admin Portal</h2>
-    <form method="post" action="{{ url_for('admin_login') }}">
-      <input
-        type="password"
-        name="password"
-        placeholder="4-digit code"
-        pattern="\d{4}"
-        maxlength="4"
-        required>
-      <button type="submit">Enter</button>
+<div style="text-align:center;">
+    <h2>Admin Login</h2>
+    <form method="POST" action="{{ url_for('admin_login') }}">
+        <input type="password" name="password" placeholder="Enter Admin Code" required>
+        <button type="submit">Login</button>
     </form>
-  </div>
+</div>
 {% endblock %}
