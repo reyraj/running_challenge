@@ -1,32 +1,30 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>{% block title %}{% endblock %} — AF Challenge</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <link rel="stylesheet"
-        href="{{ url_for('static', filename='styles.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-  <header class="site-header">
-    <img src="{{ url_for('static', filename='usaf_logo.png') }}"
-         alt="U.S. Air Force Logo" class="logo">
-    <h1>Air Force Element Running Challenge <small>(13 Aug – 11 Sep)</small></h1>
-  </header>
 
-  <main>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <ul class="flashes">
-          {% for category, msg in messages %}
-            <li class="flash {{ category }}">{{ msg }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
+    <!-- Header with Logo and Navigation -->
+    <div class="header" style="background-color: #0B1E44; color: white; padding: 20px; text-align:center;">
+        <img src="{{ url_for('static', filename='usaf_logo.png') }}" alt="USAF Logo" style="height: 50px; display:block; margin: 0 auto;">
+        <h1 style="margin-top: 10px;">Air Force Element Running Challenge <span style="font-weight:normal;">(13 Aug – 11 Sep)</span></h1>
+        
+        <!-- Global Navigation Links -->
+        <div style="margin-top: 10px;">
+            <a href="{{ url_for('home') }}" style="color: white; margin-right: 20px; text-decoration:none;">Home</a>
+            <a href="{{ url_for('login') }}" style="color: white; margin-right: 20px; text-decoration:none;">Login</a>
+            <a href="{{ url_for('admin_login') }}" style="color: white; text-decoration:none;">Admin</a>
+        </div>
+    </div>
 
-    {% block content %}{% endblock %}
-  </main>
+    <!-- Main Content -->
+    <div class="content" style="padding: 20px;">
+        {% block content %}{% endblock %}
+    </div>
+
 </body>
 </html>
