@@ -1,11 +1,34 @@
-{% extends '_base.html' %}
-{% block title %}Welcome{% endblock %}
-{% block content %}
-  <div class="ask-container">
-    <h2>Do you want to join the challenge?</h2>
-    <form action="{{ url_for('ask') }}" method="post" class="ask-form">
-      <button name="answer" value="yes" type="submit">YES</button>
-      <button name="answer" value="no" type="submit">NO</button>
-    </form>
-  </div>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Force Element Running Challenge</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+
+    <div class="header">
+        <img src="{{ url_for('static', filename='usaf_logo.png') }}" alt="USAF Logo" class="logo">
+        <h1>Air Force Element Running Challenge <span style="font-weight:normal;">(13 Aug – 11 Sep)</span></h1>
+    </div>
+
+    <div class="content" style="text-align:center; margin-top: 40px;">
+        <p style="font-size: 1.2em; font-weight: bold;">Do you want to join the challenge?</p>
+        
+        <!-- YES/NO Buttons -->
+        <form action="/ask" method="POST" style="display:inline;">
+            <button type="submit" name="answer" value="yes">YES</button>
+            <button type="submit" name="answer" value="no">NO</button>
+        </form>
+
+        <br><br>
+
+        <!-- New Login Button for Existing Users -->
+        <a href="{{ url_for('login') }}">
+            <button type="button">Login</button>
+        </a>
+    </div>
+
+</body>
+</html>

@@ -48,8 +48,10 @@
           </tbody>
         </table>
 
+        <!-- Admin & Home Links -->
         <p style="margin-top:1em;">
-          <a href="{{ url_for('admin_login') }}">Admin Portal</a>
+          <a href="{{ url_for('admin_login') }}">Admin Portal</a> |
+          <a href="{{ url_for('home') }}">Home</a>
         </p>
       </div>
 
@@ -64,7 +66,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     const ctx = document.getElementById('top5Chart').getContext('2d');
-    const labels = {{ top5 | map(attribute=0) | list | tojson }};
+    const labels = {{ top5 | map(attribute=0) | map(attribute='name') | list | tojson }};
     const data   = {{ top5 | map(attribute=1) | list | tojson }};
 
     new Chart(ctx, {
