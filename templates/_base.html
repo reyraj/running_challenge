@@ -3,26 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% endblock %}</title>
+    <title>{% block title %}Air Force Running Challenge{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
-<body>
+<body style="margin:0; font-family: Arial, sans-serif;">
 
-    <!-- Header with Logo and Navigation -->
-    <div class="header" style="background-color: #0B1E44; color: white; padding: 20px; text-align:center;">
-        <img src="{{ url_for('static', filename='usaf_logo.png') }}" alt="USAF Logo" style="height: 50px; display:block; margin: 0 auto;">
-        <h1 style="margin-top: 10px;">Air Force Element Running Challenge <span style="font-weight:normal;">(13 Aug – 11 Sep)</span></h1>
+    <!-- Blue Banner Header -->
+    <div style="background-color:#0B1E44; color:white; padding:20px; text-align:center;">
+        <img src="{{ url_for('static', filename='usaf_logo.png') }}" 
+             alt="USAF Logo" 
+             style="height:60px; display:block; margin:0 auto;">
+        <h1 style="margin:10px 0 5px 0;">Air Force Element Running Challenge</h1>
+        <h3 style="margin:0; font-weight:normal;">(13 Aug – 11 Sep)</h3>
         
         <!-- Global Navigation Links -->
-        <div style="margin-top: 10px;">
-            <a href="{{ url_for('home') }}" style="color: white; margin-right: 20px; text-decoration:none;">Home</a>
-            <a href="{{ url_for('login') }}" style="color: white; margin-right: 20px; text-decoration:none;">Login</a>
-            <a href="{{ url_for('admin_login') }}" style="color: white; text-decoration:none;">Admin</a>
+        <div style="margin-top:15px;">
+            <a href="{{ url_for('home') }}" style="color:white; margin:0 15px; text-decoration:none;">Home</a>
+            <a href="{{ url_for('login') }}" style="color:white; margin:0 15px; text-decoration:none;">Login</a>
+            <a href="{{ url_for('admin_login') }}" style="color:white; margin:0 15px; text-decoration:none;">Admin</a>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="content" style="padding: 20px;">
+    <!-- Page Content -->
+    <div class="content" style="padding: 30px; background-color: #FAEDE0; min-height: calc(100vh - 180px);">
         {% block content %}{% endblock %}
     </div>
 
