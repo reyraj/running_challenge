@@ -45,14 +45,22 @@ def join():
         name = f"{fn} {li}."
 
         # Check if user already exists
-        if Participant.query.filter_by(name=name).first():
+        existing = Participant.query.filter_by(name=name).first()
+        if existing:
             flash("User already exists; please log in.", "warning")
             return redirect(url_for('login'))
 
-        p = Participant(name=name)
-        db.session.add(p)
-        db.session.commit()
-        session['participant_id'] = int(p.id)
+        try:
+            p = Participant(name=name)
+            db.session.add(p)
+            db.session.commit()
+            session['participant_id'] = int(p.id)
+        except Exception as e:
+            db.session.rollback()
+            print("Error adding participant:", e)
+            flash("An error occurred during enrollment. Try again.", "danger")
+            return redirect(url_for('join'))
+
         return redirect(url_for('dashboard'))
 
     return render_template('join.html')
@@ -78,42 +86,46 @@ def login():
 def dashboard():
     pid = session.get('participant_id')
 
+    # Session check
     if not pid:
         flash("You must log in or enroll first.", "danger")
         return redirect(url_for('home'))
 
     participant = Participant.query.get(int(pid))
     if not participant:
-        flash("Account not found. Please log in again.", "danger")
+        print(f"[ERROR] Session pid {pid} not found in DB. Clearing session.")
+        flash("Your account could not be found. Please log in again.", "danger")
         session.pop('participant_id', None)
         return redirect(url_for('home'))
 
+    # Handle POST to log miles
     if request.method == 'POST':
         try:
             miles = float(request.form['miles'])
-        except (ValueError, KeyError):
-            flash("Please enter a valid number.", "danger")
-            return redirect(url_for('dashboard'))
-
-        db.session.add(MilesLog(participant_id=int(pid), miles=miles))
-        db.session.commit()
-        flash("Miles logged successfully!", "success")
+            db.session.add(MilesLog(participant_id=int(pid), miles=miles))
+            db.session.commit()
+            flash("Miles logged successfully!", "success")
+        except Exception as e:
+            db.session.rollback()
+            print("Error logging miles:", e)
+            flash("Error logging miles. Try again.", "danger")
         return redirect(url_for('dashboard'))
 
-    # Totals
+    # Totals for user
     total = (db.session
                .query(db.func.sum(MilesLog.miles))
                .filter_by(participant_id=int(pid))
                .scalar() or 0.0)
 
-    # Top 5
-    top5 = (db.session
-              .query(Participant.name, db.func.sum(MilesLog.miles).label('total'))
-              .outerjoin(MilesLog)
-              .group_by(Participant.id)
-              .order_by(db.desc('total'))
-              .limit(5)
-              .all())
+    # Top 5 leaderboard
+    top5 = [(n, t or 0.0) for n, t in
+            (db.session
+                .query(Participant.name, db.func.sum(MilesLog.miles).label('total'))
+                .outerjoin(MilesLog)
+                .group_by(Participant.id)
+                .order_by(db.desc('total'))
+                .limit(5)
+                .all())]
 
     # Full roster
     roster = [(runner, miles or 0.0) for runner, miles in
@@ -149,18 +161,25 @@ def admin_panel():
         return redirect(url_for('admin_login'))
 
     if request.method == 'POST':
-        if 'remove_miles' in request.form:
-            pid = int(request.form['participant_id'])
-            m = float(request.form['remove_miles'])
-            db.session.add(MilesLog(participant_id=pid, miles=-abs(m)))
-            db.session.commit()
-            flash("Removed miles.", "info")
-        if 'drop_id' in request.form:
-            pid = int(request.form['drop_id'])
-            MilesLog.query.filter_by(participant_id=pid).delete()
-            Participant.query.filter_by(id=pid).delete()
-            db.session.commit()
-            flash("Runner dropped.", "info")
+        try:
+            if 'remove_miles' in request.form:
+                pid = int(request.form['participant_id'])
+                m = float(request.form['remove_miles'])
+                db.session.add(MilesLog(participant_id=pid, miles=-abs(m)))
+                db.session.commit()
+                flash("Removed miles.", "info")
+
+            if 'drop_id' in request.form:
+                pid = int(request.form['drop_id'])
+                MilesLog.query.filter_by(participant_id=pid).delete()
+                Participant.query.filter_by(id=pid).delete()
+                db.session.commit()
+                flash("Runner dropped.", "info")
+        except Exception as e:
+            db.session.rollback()
+            print("Admin action error:", e)
+            flash("Admin action failed.", "danger")
+
         return redirect(url_for('admin_panel'))
 
     roster = [(runner, miles or 0.0) for runner, miles in
