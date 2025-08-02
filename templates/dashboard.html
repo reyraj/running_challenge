@@ -38,4 +38,36 @@
         <a href="{{ url_for('home') }}">Home</a>
     </p>
 </div>
+
+<!-- TOP 5 CHART -->
+<div style="width:80%; margin:auto; margin-top:30px;">
+    <h3>Top 5 Runners</h3>
+    <canvas id="top5Chart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('top5Chart').getContext('2d');
+    const labels = {{ top5 | map(attribute=0) | list | tojson }};
+    const data   = {{ top5 | map(attribute=1) | list | tojson }};
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Miles',
+          data: data,
+          backgroundColor: 'rgba(54, 162, 235, 0.5)',
+          borderColor:   'rgba(54, 162, 235, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+</script>
 {% endblock %}
